@@ -1,34 +1,23 @@
 ---
-tasks:
-  - name: run show version on remote devices
-    ios_command:
-      commands: show version
+- name: tao vlan
+  hosts: all
+  gather_facts: no
 
-  - name: run show version and check to see if output contains IOS
-    ios_command:
-      commands: show version
-      wait_for: result[0] contains IOS
+  tasks:
+    - name: Create vlan
+      ios_vlan:
+        vlan_id: "{{ item.number }}"
+        name: "{{ item.name }}"
+        state: present
+      with_items:
+        - { number: 60, name: "phong 60" }
+        - { number: 61, name: "phong 61" }
+        - { number: 62, name: "phong 62" }
 
-  - name: run multiple commands on remote nodes
-    ios_command:
-      commands:
-        - show version
-        - show interfaces
+    - name: Show vlan
+      ios_command:
+        commands:
+          - show vlan
+      register: show_vlan
 
-  - name: run multiple commands and evaluate the output
-    ios_command:
-      commands:
-        - show version
-        - show interfaces
-      wait_for:
-        - result[0] contains IOS
-        - result[1] contains Loopback0
-  - name: run commands that require answering a prompt
-    ios_command:
-      commands:
-        - command: 'clear counters GigabitEthernet0/1'
-          prompt: 'Clear "show interface" counters on this interface \[confirm\]'
-          answer: 'y'
-        - command: 'clear counters GigabitEthernet0/2'
-          prompt: '[confirm]'
-          answer: "\r"
+    - debug: var=show_vlan.stdout_lines
